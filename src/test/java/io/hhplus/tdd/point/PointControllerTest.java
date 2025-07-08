@@ -17,7 +17,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.hhplus.tdd.error.ErrorMessage;
+import io.hhplus.tdd.point.dto.ChargeReqDto;
 
+/**
+ * PointController 단위 테스트
+ */
 @WebMvcTest(controllers = PointController.class)
 class PointControllerTest {
 	@Autowired
@@ -57,7 +61,6 @@ class PointControllerTest {
 	@DisplayName("0이하 id값을 입력하여 포인트 충전에 실패한다.")
 	public void 포인트_충전_id_실패(long id) throws Exception {
 		//given
-		// long id = -1L;
 		long chargePoint = 10_000L;
 		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
 
@@ -83,6 +86,68 @@ class PointControllerTest {
 
 		//when then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/charge")
+				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andDo(print())
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.code").value("500"))
+			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_POINT));
+	}
+
+	/**
+	 * Use
+	 * 1. 포인트 충전에 성공 테스트 작성
+	 * 2. 0 이하 아이디를 입력하여 에러 발생
+	 * 3. 0 이하 포인트를 입력하여 에러 발생
+	 */
+	@Test
+	@DisplayName("양수인 id와 양수인 포인트 값을 넣어 포인트 사용에 성공한다.")
+	public void 포인트_사용_성공() throws Exception {
+		//given
+		long id = 1L;
+		long chargePoint = 10_000L;
+		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
+				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andDo(print())
+			.andExpect(status().isOk());
+	}
+
+	@ParameterizedTest
+	@ValueSource(longs = {-1L, 0L})
+	@DisplayName("0이하 id값을 입력하여 포인트 사용에 실패한다.")
+	public void 포인트_사용_id_실패(long id) throws Exception {
+		//given
+		long chargePoint = 10_000L;
+		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
+				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andDo(print())
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.code").value("500"))
+			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_USER_ID));
+	}
+
+	@ParameterizedTest
+	@ValueSource(longs = {-1L, 0L})
+	@DisplayName("0이하 point값을 입력하여 포인트 사용에 실패한다.")
+	public void 포인트_사용_point_실패() throws Exception {
+		//given
+		long id = 1L;
+		long chargePoint = -10_000L;
+		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
 				.content(objectMapper.writeValueAsString(chargeReqDto))
 				.contentType(MediaType.APPLICATION_JSON)
 			)
