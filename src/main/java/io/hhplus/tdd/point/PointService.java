@@ -26,4 +26,19 @@ public class PointService {
 		userPointTable.insertOrUpdate(id, addPoint);
 		pointHistoryTable.insert(id, point, TransactionType.CHARGE, System.currentTimeMillis());
 	}
+
+	/**
+	 * 포인트 사용
+	 * 아이디 확인 후 아이디 없으면 생성
+	 * 포인트 잔고보다 많으면 에러 처리
+	 * usePointTable, pointHistoryTable에 업데이트
+	 */
+	public void use(long id, long amount) {
+		UserPoint userPoint = userPointTable.selectById(id);
+
+		long calPoint = userPoint.calculateUsePoint(amount);
+
+		userPointTable.insertOrUpdate(id, calPoint);
+		pointHistoryTable.insert(id, calPoint, TransactionType.USE, System.currentTimeMillis());
+	}
 }
