@@ -21,9 +21,9 @@ public class PointService {
 	public void charge(long id, long point) {
 		UserPoint userPoint = userPointTable.selectById(id);
 
-		userPoint.validateChargePoint(point);
+		long addPoint = userPoint.addPoint(point);
 
-		userPointTable.insertOrUpdate(id, userPoint.point() + point);
+		userPointTable.insertOrUpdate(id, addPoint);
 		pointHistoryTable.insert(id, point, TransactionType.CHARGE, System.currentTimeMillis());
 	}
 }

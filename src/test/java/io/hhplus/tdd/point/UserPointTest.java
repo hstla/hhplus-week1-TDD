@@ -23,16 +23,15 @@ class UserPointTest {
 	 * 최솟값(1000) 이하일 때(999) 실패 케이스
 	 * 최댓값(10_000_000) 이상일 때(10_000_001) 실패 케이스
 	 */
-	
 	@ParameterizedTest
 	@ValueSource(longs = {1000L, 10_000_000L})
-	@DisplayName("최솟값과 최댓값 충전 포인트 입력 시 포인트를 충전할 수 있다.")
+	@DisplayName("최소, 최댓값 사이 포인트 입력 시 포인트를 충전할 수 있다.")
 	void charge_경계값_성공_케이스(long point) throws Exception {
 		// given when
-		Throwable thrown = catchThrowable(() -> userPoint.validateChargePoint(point));
+		long addPoint = userPoint.addPoint(point);
 
 		// then
-		assertThat(thrown).isNull();
+		assertThat(addPoint).isEqualTo(point);
 	}
 	
 	@ParameterizedTest
@@ -40,7 +39,7 @@ class UserPointTest {
 	@DisplayName("최솟값 미만과 최댓값 초과 충전 포인트 입력 시 포인트를 충전할 수 없다.")
 	public void charge_경계값_실패_케이스(long point) throws Exception {
 		//given when
-		Throwable thrown = catchThrowable(() -> userPoint.validateChargePoint(point));
+		Throwable thrown = catchThrowable(() -> userPoint.addPoint(point));
 
 		// then
 		assertThat(thrown).isInstanceOf(IllegalArgumentException.class)
