@@ -23,7 +23,7 @@ public class PointService {
 
 		userPoint.validateChargePoint(point);
 
-		userPointTable.insertOrUpdate(id, point);
+		userPointTable.insertOrUpdate(id, userPoint.point() + point);
 		pointHistoryTable.insert(id, point, TransactionType.CHARGE, System.currentTimeMillis());
 	}
 }

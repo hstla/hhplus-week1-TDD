@@ -41,19 +41,21 @@ class PointServiceTest {
 	public void 포인트_충전에_성공() throws Exception {
 	    //given
 		long userId = 1L;
-		long chargePoint = 1000L;
+		long chargePoint1 = 1000L;
+		long chargePoint2 = 2000L;
 
 	    //when
-		pointService.charge(userId, chargePoint);
+		pointService.charge(userId, chargePoint1);
+		pointService.charge(userId, chargePoint2);
 		UserPoint userPoint = userPointTable.selectById(userId);
 		List<PointHistory> histories = pointHistoryTable.selectAllByUserId(userId);
 
 		//then
 		assertThat(userPoint.id()).isEqualTo(userId);
-		assertThat(userPoint.point()).isEqualTo(chargePoint);
+		assertThat(userPoint.point()).isEqualTo(3000L);
 
-		assertThat(histories).hasSize(1);
-		assertThat(histories.get(0).amount()).isEqualTo(chargePoint);
+		assertThat(histories).hasSize(2);
+		assertThat(histories.get(0).amount()).isEqualTo(chargePoint1);
 		assertThat(histories.get(0).type()).isEqualTo(TransactionType.CHARGE);
 	}
 
