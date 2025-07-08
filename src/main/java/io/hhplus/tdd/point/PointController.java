@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import io.hhplus.tdd.error.ErrorMessage;
+import io.hhplus.tdd.point.dto.ChargeReqDto;
+import io.hhplus.tdd.point.dto.UseReqDto;
 import io.hhplus.tdd.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 
@@ -57,12 +59,17 @@ public class PointController {
 
     /**
      * TODO - 특정 유저의 포인트를 사용하는 기능을 작성해주세요.
+     * id와 amountReq로 사용자 유효성 검증한다.(음수이거나 0이면 예외처리)
+     * 정상동작 시 200 응답
      */
     @PatchMapping("{id}/use")
-    public UserPoint use(
+    public ResponseEntity use(
             @PathVariable long id,
-            @RequestBody long amount
+            @RequestBody UseReqDto amountReq
     ) {
-        return new UserPoint(0, 0, 0);
+        ValidationUtils.checkPositive(id, ErrorMessage.NEGATIVE_USER_ID);
+        amountReq.validate();
+        pointService.use(id, amountReq.getAmount());
+        return ResponseEntity.ok().build();
     }
 }

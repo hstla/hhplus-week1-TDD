@@ -3,12 +3,12 @@ package io.hhplus.tdd.point.dto;
 import io.hhplus.tdd.error.ErrorMessage;
 import io.hhplus.tdd.utils.ValidationUtils;
 
-public class ChargeReqDto {
+public class UseReqDto {
 	private long amount;
 
-	public ChargeReqDto() {}
+	public UseReqDto() {}
 
-	public ChargeReqDto(long amount) {
+	public UseReqDto(long amount) {
 		this.amount = amount;
 	}
 
