@@ -41,4 +41,12 @@ public class PointService {
 		userPointTable.insertOrUpdate(id, calPoint);
 		pointHistoryTable.insert(id, calPoint, TransactionType.USE, System.currentTimeMillis());
 	}
+
+	/**
+	 * id를 입력받아 포인트를 조회한다.
+	 * id가 없더라도 생성해서 반환해야한다.
+	 */
+	public UserPoint findById(long id) {
+		return userPointTable.selectById(id);
+	}
 }

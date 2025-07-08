@@ -28,7 +28,8 @@ public class PointController {
     public UserPoint point(
             @PathVariable long id
     ) {
-        return new UserPoint(0, 0, 0);
+        ValidationUtils.checkPositive(id, ErrorMessage.NEGATIVE_USER_ID);
+        return pointService.findById(id);
     }
 
     /**
