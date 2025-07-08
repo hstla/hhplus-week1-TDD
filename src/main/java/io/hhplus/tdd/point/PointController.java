@@ -39,7 +39,8 @@ public class PointController {
     public List<PointHistory> history(
             @PathVariable long id
     ) {
-        return List.of();
+        ValidationUtils.checkPositive(id, ErrorMessage.NEGATIVE_USER_ID);
+        return pointService.findHistoryById(id);
     }
 
     /**

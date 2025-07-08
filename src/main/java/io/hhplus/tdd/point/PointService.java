@@ -1,5 +1,7 @@
 package io.hhplus.tdd.point;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import io.hhplus.tdd.database.PointHistoryTable;
@@ -48,5 +50,13 @@ public class PointService {
 	 */
 	public UserPoint findById(long id) {
 		return userPointTable.selectById(id);
+	}
+
+	/**
+	 * id를 입력받아 해당 id의 포인트 히스토리를 조회한다.
+	 * id에  대한 포인트가 없더라도 빈 리스트를 반환한다.
+	 */
+	public List<PointHistory> findHistoryById(long id) {
+		return pointHistoryTable.selectAllByUserId(id);
 	}
 }
