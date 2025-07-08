@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import io.hhplus.tdd.error.ErrorMessage;
 
 /**
  * 현재 in-memory를 사용하고 있기 때문에
@@ -78,5 +79,47 @@ class PointServiceTest {
 		assertThat(histories).hasSize(0);
 
 		assertThat(userPoint.point()).isEqualTo(0);
+	}
+
+	/**
+	 * 포인트 사용 테스트
+	 * 1. 포인트 사용 성공 시 - 결과값 검증, pointHistory, userPointTable에 저장 확인
+	 * 2. 포인트 사용 실패 시 - 포인트 잔고보다 사용 포인트가 클 때 예외처리 확인
+	 */
+	@Test
+	@DisplayName("포인트 사용에 성공하여 history, userPointTable에 저장한다.")
+	public void 포인트_사용_성공() throws Exception {
+	    //given
+		long userId = 1L;
+		long currentPoint = 10000L;
+		long usePoint = 2000L;
+		userPointTable.insertOrUpdate(userId, currentPoint);
+
+		//when
+		pointService.use(userId, usePoint);
+		UserPoint userPoint = userPointTable.selectById(userId);
+		List<PointHistory> histories = pointHistoryTable.selectAllByUserId(userId);
+
+	    //then
+		assertThat(userPoint.point()).isEqualTo(currentPoint - usePoint);
+		assertThat(histories.get(0).amount()).isEqualTo(currentPoint - usePoint);
+		assertThat(histories.get(0).type()).isEqualTo(TransactionType.USE);
+	}
+
+	@Test
+	@DisplayName("잔고보다 큰 포인트를 입력하여 포인트 사용에 실패한다.")
+	public void 포인트_사용_실패() throws Exception {
+		//given
+		long userId = 1L;
+		long currentPoint = 10000L;
+		long usePoint = 20000L;
+		userPointTable.insertOrUpdate(userId, currentPoint);
+
+		//when
+		Throwable throwable = catchThrowable(() -> pointService.use(userId, usePoint));
+
+		//then
+		assertThat(throwable).isInstanceOf(IllegalArgumentException.class)
+			.hasMessage(ErrorMessage.INSUFFICIENT_POINT_MESSAGE);
 	}
 }
