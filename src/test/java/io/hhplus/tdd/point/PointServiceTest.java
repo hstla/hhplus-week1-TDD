@@ -122,4 +122,32 @@ class PointServiceTest {
 		assertThat(throwable).isInstanceOf(IllegalArgumentException.class)
 			.hasMessage(ErrorMessage.INSUFFICIENT_POINT_MESSAGE);
 	}
+
+	@Test
+	@DisplayName("양수인 id를 입력받아 포인트 조회에 성공한다.")
+	public void 포인트_조회_성공() throws Exception {
+	    //given
+		long id = 1L;
+		long point = 10000L;
+		UserPoint userPoint = userPointTable.insertOrUpdate(id, point);
+
+		//when
+		UserPoint findUserPoint = pointService.findById(id);
+
+		//then
+		assertThat(findUserPoint.point()).isEqualTo(userPoint.point());
+	}
+
+	@Test
+	@DisplayName("기존 id가 없더라도 id를 생성해서 포인트를 조회한다.")
+	public void 존재하지_않는_아이디_포인트_조회_성공() throws Exception {
+		//given
+		long id = 2L;
+
+		//when
+		UserPoint findUserPoint = pointService.findById(id);
+
+		//then
+		assertThat(findUserPoint.point()).isEqualTo(0);
+	}
 }

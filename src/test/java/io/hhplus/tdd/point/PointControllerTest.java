@@ -1,5 +1,6 @@
 package io.hhplus.tdd.point;
 
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -156,4 +157,38 @@ class PointControllerTest {
 			.andExpect(jsonPath("$.code").value("500"))
 			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_POINT));
 	}
+
+	/**
+	 * 입력받은 id로 포인트를 조회한다.
+	 * 아이디가 음수 & 0 인지 검증한다.
+	 */
+	@Test
+	@DisplayName("포인트 조회에 성공한다.")
+	public void 포인트_조회_성공() throws Exception {
+	    //given
+		long id = 1L;
+		long currentPoint = 10_000L;
+		given(pointService.findById(id)).willReturn(new UserPoint(id, currentPoint, System.currentTimeMillis()));
+
+	    //when then
+		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(id))
+			.andExpect(jsonPath("$.point").value(currentPoint));
+	}
+
+	@Test
+	@DisplayName("음수 & 0인 id값을 입력받아 포인트 조회에 실패한다.")
+	public void 포인트_조회_실패() throws Exception {
+		//given
+		long id = -1L;
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id))
+			.andDo(print())
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_USER_ID));
+	}
+
 }
