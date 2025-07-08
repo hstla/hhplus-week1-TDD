@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        return ResponseEntity.status(500).body(new ErrorResponse("500", "에러가 발생했습니다."));
+        String message = (e.getMessage() != null  && !e.getMessage().isBlank()) ? e.getMessage() : "에러가 발생했습니다.";
+        return ResponseEntity.status(500).body(new ErrorResponse("500", message));
     }
 }
