@@ -150,4 +150,43 @@ class PointServiceTest {
 		//then
 		assertThat(findUserPoint.point()).isEqualTo(0);
 	}
+
+	/**
+	 * point history 조회
+	 * 1. 포인트 히스토리 조회에 성공한다.
+	 * 2. 히스토리가 없는 아이디이면 빈 리스트를 반환한다.
+	 */
+	@Test
+	@DisplayName("포인트 히스토리 조회에 성공한다.")
+	public void 포인트_history_조회_성공() throws Exception {
+		//given
+		long id = 1L;
+		pointHistoryTable.insert(id, 10_000L, TransactionType.CHARGE, System.currentTimeMillis());
+		pointHistoryTable.insert(id, 5_000L, TransactionType.USE, System.currentTimeMillis());
+		pointHistoryTable.insert(2L, 10_000L, TransactionType.CHARGE, System.currentTimeMillis());
+
+		//when
+		List<PointHistory> historyList = pointService.findHistoryById(id);
+
+		//then
+		assertThat(historyList.size()).isEqualTo(2);
+		assertThat(historyList.get(0).amount()).isEqualTo(10_000L);
+		assertThat(historyList.get(1).type()).isEqualTo(TransactionType.USE);
+	}
+
+	@Test
+	@DisplayName("히스토리에 입력받은 id가 없으면 빈 리스트를 반환한다.")
+	public void 존재하지_않는_아이디_포인트_history_조회_성공() throws Exception {
+		//given
+		long id = 1L;
+		long inputId = 2L;
+		pointHistoryTable.insert(id, 10_000L, TransactionType.CHARGE, System.currentTimeMillis());
+		pointHistoryTable.insert(id, 5_000L, TransactionType.USE, System.currentTimeMillis());
+
+		//when
+		List<PointHistory> historyList = pointService.findHistoryById(inputId);
+
+		//then
+		assertThat(historyList.size()).isEqualTo(0);
+	}
 }

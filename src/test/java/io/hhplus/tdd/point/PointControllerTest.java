@@ -4,6 +4,9 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -191,4 +194,39 @@ class PointControllerTest {
 			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_USER_ID));
 	}
 
+	/**
+	 * point history 조회
+	 * 1. 입력받은 id로 포인트 history를 조회에 성공한다.
+	 * 2. 아이디가 음수 & 0 인지 검증한다.
+	 */
+	@Test
+	@DisplayName("포인트 history 조회에 성공한다.")
+	public void 포인트_history_조회_성공() throws Exception {
+		//given
+		long id = 1L;
+		List<PointHistory> histories = new ArrayList<>();
+		histories.add(new PointHistory(1L, id, 10_000L, TransactionType.CHARGE, System.currentTimeMillis()));
+		histories.add(new PointHistory(2L, id, 5_000L, TransactionType.USE, System.currentTimeMillis() + 1));
+		given(pointService.findHistoryById(id)).willReturn(histories);
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id + "/histories"))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.length()").value(2))
+			.andExpect(jsonPath("$[1].amount").value(5_000L));
+	}
+
+	@Test
+	@DisplayName("음수 & 0인 id값을 입력받아 포인트 history 조회에 실패한다.")
+	public void 포인트_history_조회_실패() throws Exception {
+		//given
+		long id = -1L;
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id + "/histories"))
+			.andDo(print())
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_USER_ID));
+	}
 }
