@@ -58,6 +58,7 @@ class PointControllerTest {
 			)
 			.andDo(print())
 			.andExpect(status().isOk());
+		verify(pointService).charge(id, chargePoint);
 	}
 
 	@ParameterizedTest
@@ -120,6 +121,7 @@ class PointControllerTest {
 			)
 			.andDo(print())
 			.andExpect(status().isOk());
+		verify(pointService).use(id, chargePoint);
 	}
 
 	@ParameterizedTest
@@ -179,6 +181,7 @@ class PointControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.id").value(id))
 			.andExpect(jsonPath("$.point").value(currentPoint));
+		verify(pointService).findById(id);
 	}
 
 	@Test
