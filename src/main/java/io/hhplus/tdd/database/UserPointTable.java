@@ -34,4 +34,8 @@ public class UserPointTable {
 
         }
     }
+
+    public void clear() {
+        table.clear();
+    }
 }
