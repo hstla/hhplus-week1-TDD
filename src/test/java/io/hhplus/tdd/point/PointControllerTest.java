@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.hhplus.tdd.error.ErrorMessage;
 import io.hhplus.tdd.point.dto.ChargeReqDto;
+import io.hhplus.tdd.point.dto.UseReqDto;
 
 /**
  * PointController 단위 테스트
@@ -111,17 +112,17 @@ class PointControllerTest {
 	public void 포인트_사용_성공() throws Exception {
 		//given
 		long id = 1L;
-		long chargePoint = 10_000L;
-		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+		long usePoint = 10_000L;
+		UseReqDto useReqDto = new UseReqDto(usePoint);
 
 		//when then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
-				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.content(objectMapper.writeValueAsString(useReqDto))
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andDo(print())
 			.andExpect(status().isOk());
-		verify(pointService).use(id, chargePoint);
+		verify(pointService).use(id, usePoint);
 	}
 
 	@ParameterizedTest
@@ -129,12 +130,12 @@ class PointControllerTest {
 	@DisplayName("0이하 id값을 입력하여 포인트 사용에 실패한다.")
 	public void 포인트_사용_id_실패(long id) throws Exception {
 		//given
-		long chargePoint = 10_000L;
-		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+		long usePoint = 10_000L;
+		UseReqDto useReqDto = new UseReqDto(usePoint);
 
 		//when then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
-				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.content(objectMapper.writeValueAsString(useReqDto))
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andDo(print())
@@ -149,12 +150,12 @@ class PointControllerTest {
 	public void 포인트_사용_point_실패() throws Exception {
 		//given
 		long id = 1L;
-		long chargePoint = -10_000L;
-		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+		long usePoint = -10_000L;
+		UseReqDto useReqDto = new UseReqDto(usePoint);
 
 		//when then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
-				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.content(objectMapper.writeValueAsString(useReqDto))
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andDo(print())
