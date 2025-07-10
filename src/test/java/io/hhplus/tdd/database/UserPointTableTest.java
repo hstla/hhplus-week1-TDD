@@ -2,7 +2,6 @@ package io.hhplus.tdd.database;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -13,10 +12,6 @@ class UserPointTableTest {
 
 	private UserPointTable userPointTable = new UserPointTable();
 
-	@AfterEach
-	void tearDown() {
-		userPointTable.clear();
-	}
 
 	@ParameterizedTest
 	@CsvSource({

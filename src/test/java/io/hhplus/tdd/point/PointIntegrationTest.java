@@ -3,7 +3,6 @@ package io.hhplus.tdd.point;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,12 +40,6 @@ class PointIntegrationTest {
 	@Autowired
 	private UserPointTable userPointTable;
 
-	@AfterEach
-	void tearDown() {
-		pointHistoryTable.clear();
-		userPointTable.clear();
-	}
-
 	/**
 	 * Charge
 	 * 1. 포인트 충전에 성공 테스트 작성
@@ -81,7 +74,7 @@ class PointIntegrationTest {
 	@DisplayName("양수인 id와 1000~10_000_000 범위 밖의 포인트 값을 넣어 포인트 충전에 실패한다.")
 	public void 포인트_충전_point_범위_실패(long chargePoint) throws Exception {
 		//given
-		long id = 1L;
+		long id = 2L;
 		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
 
 		//when then
@@ -141,7 +134,7 @@ class PointIntegrationTest {
 	@DisplayName("양수인 id와 양수인 포인트 값을 넣어 포인트 사용에 성공한다.")
 	public void 포인트_사용_성공() throws Exception {
 		//given
-		long id = 1L;
+		long id = 3L;
 		long currentPoint = 20_000L;
 		long usePoint = 10_000L;
 		UseReqDto useReqDto = new UseReqDto(usePoint);
@@ -208,7 +201,7 @@ class PointIntegrationTest {
 	@DisplayName("포인트 조회에 성공한다.")
 	public void 포인트_조회_성공() throws Exception {
 	    //given
-		long id = 1L;
+		long id = 4L;
 		long currentPoint = 10_000L;
 		userPointTable.insertOrUpdate(id, currentPoint);
 
@@ -240,7 +233,7 @@ class PointIntegrationTest {
 	@DisplayName("포인트 history 조회에 성공한다.")
 	public void 포인트_history_조회_성공() throws Exception {
 		//given
-		long id = 1L;
+		long id = 5L;
 		pointHistoryTable.insert(id, 10_000L, TransactionType.CHARGE, System.currentTimeMillis());
 		pointHistoryTable.insert(id, 5_000L, TransactionType.USE, System.currentTimeMillis() + 1);
 

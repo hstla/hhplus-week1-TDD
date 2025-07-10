@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,11 +13,6 @@ import io.hhplus.tdd.point.TransactionType;
 class PointHistoryTableTest {
 
 	private final PointHistoryTable pointHistoryTable = new PointHistoryTable();
-
-	@AfterEach
-	void tearDown() {
-		pointHistoryTable.clear();
-	}
 
 	@Test
 	@DisplayName("기존 히스토리가 없으면 빈 리스트를 반환한다.")
@@ -37,7 +31,7 @@ class PointHistoryTableTest {
 	@DisplayName("히스토리 생성에 성공한다.")
 	public void 히스토리_생성() throws Exception {
 		//given
-		long id = 1L;
+		long id = 2L;
 		long amount = 10_000L;
 		TransactionType type = TransactionType.CHARGE;
 
@@ -46,7 +40,7 @@ class PointHistoryTableTest {
 		PointHistory pointHistory = pointHistoryTable.insert(id, amount, type, updateMillis);
 
 		//then
-		assertThat(pointHistory.id()).isEqualTo(id);
+		assertThat(pointHistory.userId()).isEqualTo(id);
 		assertThat(pointHistory.amount()).isEqualTo(amount);
 		assertThat(pointHistory.type()).isEqualTo(type);
 		assertThat(pointHistory.updateMillis()).isEqualTo(updateMillis);
@@ -56,7 +50,7 @@ class PointHistoryTableTest {
 	@DisplayName("기존 히스토리를 반환한다.")
 	public void 히스토리_조회() throws Exception {
 	    //given
-		long id = 1L;
+		long id = 3L;
 		long amount = 10_000L;
 		TransactionType type = TransactionType.CHARGE;
 
