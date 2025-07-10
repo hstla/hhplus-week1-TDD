@@ -1,42 +1,51 @@
 package io.hhplus.tdd.point;
 
-import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.hhplus.tdd.database.PointHistoryTable;
+import io.hhplus.tdd.database.UserPointTable;
 import io.hhplus.tdd.error.ErrorMessage;
 import io.hhplus.tdd.point.dto.ChargeReqDto;
 import io.hhplus.tdd.point.dto.UseReqDto;
 
 /**
- * PointController 단위 테스트
+ * MockMvc 를 사용하여 PointController 통합 테스트
  */
-@WebMvcTest(controllers = PointController.class)
-class PointControllerTest {
+@AutoConfigureMockMvc
+@SpringBootTest
+class PointIntegrationTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	@MockBean
-	private PointService pointService;
-
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Autowired
+	private PointHistoryTable pointHistoryTable;
+
+	@Autowired
+	private UserPointTable userPointTable;
+
+	@AfterEach
+	void tearDown() {
+		pointHistoryTable.clear();
+		userPointTable.clear();
+	}
 
 	/**
 	 * Charge
@@ -45,7 +54,7 @@ class PointControllerTest {
 	 * 3. 0 이하 포인트를 입력하여 에러 발생
 	 */
 	@Test
-	@DisplayName("양수인 id와 1000~10_000_000 사이 포인트 값을 넣어 포인트 충전에 성공한다.")
+	@DisplayName("양수인 id와 1000~10_000_000 사이 포인트 값을 넣어 포인트 충전하고 포인트 조회를 통해 충전된 값을 확인한다.")
 	public void 포인트_충전_성공() throws Exception {
 	    //given
 		long id = 1L;
@@ -59,7 +68,30 @@ class PointControllerTest {
 			)
 			.andDo(print())
 			.andExpect(status().isOk());
-		verify(pointService).charge(id, chargePoint);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(id))
+			.andExpect(jsonPath("$.point").value(chargePoint));
+	}
+
+	@ParameterizedTest
+	@ValueSource(longs = {999L, 20_000_000L})
+	@DisplayName("양수인 id와 1000~10_000_000 범위 밖의 포인트 값을 넣어 포인트 충전에 실패한다.")
+	public void 포인트_충전_point_범위_실패(long chargePoint) throws Exception {
+		//given
+		long id = 1L;
+		ChargeReqDto chargeReqDto = new ChargeReqDto(chargePoint);
+
+		//when then
+		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/charge")
+				.content(objectMapper.writeValueAsString(chargeReqDto))
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andDo(print())
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.message").value("충전 포인트는 1000 이상, 10000000 이하이어야 합니다."));
 	}
 
 	@ParameterizedTest
@@ -77,7 +109,6 @@ class PointControllerTest {
 			)
 			.andDo(print())
 			.andExpect(status().isInternalServerError())
-			.andExpect(jsonPath("$.code").value("500"))
 			.andExpect(jsonPath("$.message").value(ErrorMessage.NEGATIVE_USER_ID));
 	}
 
@@ -111,8 +142,10 @@ class PointControllerTest {
 	public void 포인트_사용_성공() throws Exception {
 		//given
 		long id = 1L;
+		long currentPoint = 20_000L;
 		long usePoint = 10_000L;
 		UseReqDto useReqDto = new UseReqDto(usePoint);
+		userPointTable.insertOrUpdate(id, currentPoint);
 
 		//when then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/point/" + id + "/use")
@@ -121,7 +154,12 @@ class PointControllerTest {
 			)
 			.andDo(print())
 			.andExpect(status().isOk());
-		verify(pointService).use(id, usePoint);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(id))
+			.andExpect(jsonPath("$.point").value(currentPoint - usePoint));
 	}
 
 	@ParameterizedTest
@@ -144,7 +182,7 @@ class PointControllerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(longs = {-1_000L, 0L})
+	@ValueSource(longs = {-1L, 0L})
 	@DisplayName("0이하 point값을 입력하여 포인트 사용에 실패한다.")
 	public void 포인트_사용_point_실패(long usePoint) throws Exception {
 		//given
@@ -172,7 +210,7 @@ class PointControllerTest {
 	    //given
 		long id = 1L;
 		long currentPoint = 10_000L;
-		given(pointService.findById(id)).willReturn(new UserPoint(id, currentPoint, System.currentTimeMillis()));
+		userPointTable.insertOrUpdate(id, currentPoint);
 
 	    //when then
 		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id))
@@ -180,7 +218,6 @@ class PointControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.id").value(id))
 			.andExpect(jsonPath("$.point").value(currentPoint));
-		verify(pointService).findById(id);
 	}
 
 	@ParameterizedTest
@@ -204,10 +241,8 @@ class PointControllerTest {
 	public void 포인트_history_조회_성공() throws Exception {
 		//given
 		long id = 1L;
-		List<PointHistory> histories = new ArrayList<>();
-		histories.add(new PointHistory(1L, id, 10_000L, TransactionType.CHARGE, System.currentTimeMillis()));
-		histories.add(new PointHistory(2L, id, 5_000L, TransactionType.USE, System.currentTimeMillis() + 1));
-		given(pointService.findHistoryById(id)).willReturn(histories);
+		pointHistoryTable.insert(id, 10_000L, TransactionType.CHARGE, System.currentTimeMillis());
+		pointHistoryTable.insert(id, 5_000L, TransactionType.USE, System.currentTimeMillis() + 1);
 
 		//when then
 		mockMvc.perform(MockMvcRequestBuilders.get("/point/" + id + "/histories"))
@@ -218,7 +253,7 @@ class PointControllerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(longs = {-1_000L, 0L})
+	@ValueSource(longs = {-1L, 0L})
 	@DisplayName("음수 & 0인 id값을 입력받아 포인트 history 조회에 실패한다.")
 	public void 포인트_history_조회_실패(long id) throws Exception {
 		//given when then
